@@ -5,11 +5,12 @@ import threading
 import pandas
 import matplotlib.pyplot as plt
 
+
 def manage_graphs(out_degree, nodes=50):
     rnd = snap.TRnd(1, 0)
     graph = snap.GenSmallWorld(nodes, out_degree, 0.7, rnd)
+    print(40 * "#")
     print(f"Starting Graph for #{nodes} Nodes.")
-    print(40*"#")
 
     # Save the graph in order to reload it after manipulation
     output_filename = f"temporary_graphs/{nodes}_ws_graph.graph"
@@ -88,21 +89,25 @@ def manage_graphs(out_degree, nodes=50):
 if __name__ == "__main__":
     # Generate the Watts-Strogatz graph
 
-    # Start with nodes = 50
-    nodes_num = 50
-    out_degree = random.randint(5, 20)
-    exceed = False
-    while not exceed:
-        graph, cnm_exec_time, gn_exec_time, exceed = manage_graphs(out_degree, nodes_num)
-        if not exceed:
-            nodes_num += 50
-            out_degree = random.randint(5, 20)
-            largest_graph = graph
+    # # Start with nodes = 50
+    # nodes_num = 50
+    # out_degree = random.randint(5, 20)
+    # exceed = False
+    # while not exceed:
+    #     graph, cnm_exec_time, gn_exec_time, exceed = manage_graphs(out_degree, nodes_num)
+    #     if not exceed:
+    #         nodes_num += 50
+    #         out_degree = random.randint(5, 20)
+    #         largest_graph = graph
 
     # Find Top-30 nodes og PageRank
+
+    rnd = snap.TRnd(1, 0)
+    largest_graph = snap.GenSmallWorld(450, 18, 0.987)
+
     page_rank_scores = snap.TIntFltH()
     snap.GetPageRank(largest_graph, page_rank_scores)
-    top_thirty_nodes_ids = sorted(page_rank_scores, key=lambda n: page_rank_scores[n])[:30]
+    top_thirty_nodes_ids = sorted(page_rank_scores, key=lambda n: page_rank_scores[n], reverse=True)[:30]
     top_thirty_nodes_ids.sort()
     top_thirty_nodes_page_rank = [page_rank_scores[node_id] for node_id in top_thirty_nodes_ids]
 
@@ -133,10 +138,10 @@ if __name__ == "__main__":
 
     measures_df = measures_df.set_index("NodeIds")
 
-    print(measures_df.head(5))
+    print(measures_df.sort_values("PageRank").head(5))
 
-    plot_1 = measures_df.plot.bar(y=["Betweenness", "Closeness", "PageRank"])
+    plot_1 = measures_df.plot.scatter(y=["PageRank", "Closeness"], x="Betweenness")
     plt.show()
 
-    plot_2 = measures_df.plot.barh(y=["PageRank", "Hubs", "Authorities"])
+    plot_2 = measures_df.plot.scatter(y=["Hubs", "Authorities"], x="Hub")
     plt.show()
