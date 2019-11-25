@@ -89,18 +89,19 @@ if __name__ == "__main__":
     # Generate the Watts-Strogatz graph
 
     # Start with nodes = 50
+    nodes_num = 50
     out_degree = random.randint(5, 20)
-    graph, cnm_exec_time, gn_exec_time, exceed = manage_graphs(out_degree, 50)
-    # nodes_num = 100
-    # while not exceed:
-    #     largest_graph = graph
-    #     graph, cnm_exec_time, gn_exec_time, exceed = manage_graphs(nodes_num)
-    #     if not exceed:
-    #         nodes_num += 50
+    exceed = False
+    while not exceed:
+        graph, cnm_exec_time, gn_exec_time, exceed = manage_graphs(out_degree, nodes_num)
+        if not exceed:
+            nodes_num += 50
+            out_degree = random.randint(5, 20)
+            largest_graph = graph
 
     # Find Top-30 nodes og PageRank
     page_rank_scores = snap.TIntFltH()
-    snap.GetPageRank(graph, page_rank_scores)
+    snap.GetPageRank(largest_graph, page_rank_scores)
     top_thirty_nodes_ids = sorted(page_rank_scores, key=lambda n: page_rank_scores[n])[:30]
     top_thirty_nodes_ids.sort()
     top_thirty_nodes_page_rank = [page_rank_scores[node_id] for node_id in top_thirty_nodes_ids]
@@ -108,18 +109,18 @@ if __name__ == "__main__":
     # Gets Hubs and Authorities of all the nodes
     hubs_per_node = snap.TIntFltH()
     auths_per_node = snap.TIntFltH()
-    snap.GetHits(graph, hubs_per_node, auths_per_node)
+    snap.GetHits(largest_graph, hubs_per_node, auths_per_node)
     top_thirty_hubs = [hubs_per_node[node_id] for node_id in top_thirty_nodes_ids]
     top_thirty_authorities = [auths_per_node[node_id] for node_id in top_thirty_nodes_ids]
     #
     # Find betweenness
     nodes_betweenness = snap.TIntFltH()
     edge_betweenness = snap.TIntPrFltH()
-    betweenness_centrality = snap.GetBetweennessCentr(graph, nodes_betweenness, edge_betweenness,  1.0)
+    betweenness_centrality = snap.GetBetweennessCentr(largest_graph, nodes_betweenness, edge_betweenness,  1.0)
     top_thirty_betweenness = [nodes_betweenness[node_id] for node_id in top_thirty_nodes_ids]
 
     # Find closeness
-    top_thirty_closeness = [snap.GetClosenessCentr(graph, node_id) for node_id in top_thirty_nodes_ids]
+    top_thirty_closeness = [snap.GetClosenessCentr(largest_graph, node_id) for node_id in top_thirty_nodes_ids]
 
     measures_df = pandas.DataFrame().from_dict({
         "PageRank": top_thirty_nodes_page_rank,
